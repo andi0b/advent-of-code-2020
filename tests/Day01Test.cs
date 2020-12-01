@@ -6,8 +6,7 @@ namespace tests
 {
     public class Day01Test
     {
-        
-        private int[] _sampleInput =
+        readonly int[] _sampleInput =
         {
             1721,
             979,
@@ -17,8 +16,8 @@ namespace tests
             1456
         };
         
-        [Fact] private Day01 GetInstance() => new();
-        [Fact] public void Part1() => GetInstance().Part1(_sampleInput).Should().Be(514579);
-        [Fact] public void Part2() => GetInstance().Part2(_sampleInput).Should().Be(241861950);
+        [Fact] Day01 GetInstance() => new();
+        [Fact] void Part1() => GetInstance().Part1(_sampleInput).Should().Be(514579);
+        [Fact] void Part2() => GetInstance().Part2(_sampleInput).Should().Be(241861950);
     }
 }

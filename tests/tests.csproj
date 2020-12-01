@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\aoc-runner\aoc-runner.csproj" />
+      <ProjectReference Include="..\src\aoc-runner.csproj" />
     </ItemGroup>
 
 </Project>

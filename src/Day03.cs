@@ -29,7 +29,7 @@ namespace aoc_runner
         }
 
         private int TreeCountOnSlope(Forest forest, int right, int down)
-            => TobogganPositions(forest.RowCount, right, down)
+            => TobogganPositions(forest.RowCount / down, right, down)
                .Count(pos => forest[pos.x, pos.y]);
         
         public IEnumerable<(int x, int y)> TobogganPositions(int count, int right, int down)
@@ -38,10 +38,8 @@ namespace aoc_runner
         
         public record Forest(bool[][] IsTreeMapYx, int PatternWidth)
         {
-            // allow out of bounds access (only downward is possible)
-            // there are no trees outside our slope
             public bool this[int x, int y]
-                => y < RowCount && IsTreeMapYx[y][x % PatternWidth];
+                => IsTreeMapYx[y][x % PatternWidth];
 
             public int RowCount => IsTreeMapYx.Length;
             

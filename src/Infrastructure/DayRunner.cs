@@ -32,6 +32,7 @@ namespace aoc_runner.Infrastructure
         private readonly InputLoader _loader;
         private readonly object      _dayInstance;
         private readonly Type        _dayType;
+        private readonly TimeSpan    _initTime;
 
         public DayRunner(int day)
         {
@@ -39,8 +40,12 @@ namespace aoc_runner.Infrastructure
             _loader = new InputLoader(day);
             
             _dayType = DayTypes[day];
+
+            var sw = Stopwatch.StartNew();
             _dayInstance = CreateDayInstance() 
                            ?? throw new Exception($"Error Activating type {_dayType.FullName}");
+            sw.Stop();
+            _initTime = sw.Elapsed;
         }
 
         private object? CreateDayInstance()
@@ -57,7 +62,7 @@ namespace aoc_runner.Infrastructure
 
         public void Run()
         {
-            Console.WriteLine($"-------- Day {_day}:");
+            Console.WriteLine($"-------- Day {_day} (init took {_initTime.TotalMilliseconds:0.00}ms):");
             ExecutePart(1);
             ExecutePart(2);
             

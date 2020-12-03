@@ -39,10 +39,21 @@ namespace aoc_runner.Infrastructure
             _loader = new InputLoader(day);
             
             _dayType = DayTypes[day];
-            _dayInstance = Activator.CreateInstance(_dayType) 
+            _dayInstance = CreateDayInstance() 
                            ?? throw new Exception($"Error Activating type {_dayType.FullName}");
         }
-        
+
+        private object? CreateDayInstance()
+        {
+            var firstConstructor = _dayType.GetConstructors().First();
+            var parameterType = firstConstructor.GetParameters().FirstOrDefault()?.ParameterType;
+
+            if (parameterType == null)
+                return Activator.CreateInstance(_dayType);
+            
+            var parameters = new[] {GetParameterValue(parameterType!)};
+            return Activator.CreateInstance(_dayType, parameters);
+        }
 
         public void Run()
         {
@@ -67,22 +78,29 @@ namespace aoc_runner.Infrastructure
             
             Console.Write($"Part {partId}... ");
 
-            var parameterType = method.GetParameters().First().ParameterType;
-            
-            var parameterValue = parameterType.IsArray
-                ? _loader.GetType().GetMethod(nameof(_loader.ReadLines))?
-                   .MakeGenericMethod(parameterType.GetElementType()!)
-                         .Invoke(_loader, Array.Empty<object>())
-                : _loader.GetType().GetMethod(nameof(_loader.Read))?
-                   .MakeGenericMethod(parameterType)
-                         .Invoke(_loader, Array.Empty<object>());
-            
+            var parameterType = method.GetParameters().FirstOrDefault()?.ParameterType;
+
+            var parameters = parameterType == null
+                ? new object[0]
+                : new[] {GetParameterValue(parameterType!)};
+
             var sw = Stopwatch.StartNew();
-            var returnValue = method.Invoke(_dayInstance, new[] {parameterValue});
+            var returnValue = method.Invoke(_dayInstance, parameters);
             sw.Stop();
 
             var elapsedPadded = $"{sw.Elapsed.TotalMilliseconds:0.00}".PadLeft(7);
             Console.WriteLine($"finished after {elapsedPadded}ms, with result: {returnValue}");
         }
+
+        private object? GetParameterValue(Type parameterType) =>
+            parameterType.IsArray
+                ? _loader.GetType()
+                         .GetMethod(nameof(_loader.ReadLines))
+                        ?.MakeGenericMethod(parameterType.GetElementType()!)
+                         .Invoke(_loader, Array.Empty<object>())
+                : _loader.GetType()
+                         .GetMethod(nameof(_loader.Read))
+                        ?.MakeGenericMethod(parameterType)
+                         .Invoke(_loader, Array.Empty<object>());
     }
 }

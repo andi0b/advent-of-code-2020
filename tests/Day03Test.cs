@@ -21,10 +21,10 @@ namespace tests
             ".#..#...#.#",
         };
         
-        [Fact] Day03 GetInstance() => new();
+        [Fact] Day03 GetInstance() => new(_sampleInput);
 
-        [Fact] void Part1() => GetInstance().Part1(_sampleInput).Should().Be(7);
+        [Fact] void Part1() => GetInstance().Part1().Should().Be(7);
         
-        [Fact] void Part2() => GetInstance().Part2(_sampleInput).Should().Be(336);
+        [Fact] void Part2() => GetInstance().Part2().Should().Be(336);
     }
 }

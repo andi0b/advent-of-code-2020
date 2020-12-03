@@ -5,36 +5,36 @@ namespace aoc_runner
 {
     public class Day03
     {
-        public int Part1(string[] input)
-        {
-            var forest = Forest.Parse(input);
-            return TreeCountOnSlope(forest, 3, 1);
-        }
+        private readonly Forest _forest;
 
-        public long Part2(string[] input)
-        {
-            var forest = Forest.Parse(input);
+        public Day03(string[] input)
+            => _forest = Forest.Parse(input);
 
-            (int right, int down)[] slopeDefinitions =
+        public int Part1()
+            => TreeCountOnSlope(_forest, new(3, 1));
+
+        public long Part2() =>
+        (
+            from def in new SlopeDefinition[]
             {
-                (1, 1),
-                (3, 1),
-                (5, 1),
-                (7, 1),
-                (1, 2)
-            };
-
-            return slopeDefinitions.Select(s => (long) TreeCountOnSlope(forest, s.right, s.down))
-                                   .Aggregate((agg, next) => agg * next);
-        }
-
-        private int TreeCountOnSlope(Forest forest, int right, int down)
-            => TobogganPositions(forest.RowCount / down, right, down)
-               .Count(pos => forest[pos.x, pos.y]);
+                new(1, 1),
+                new(3, 1),
+                new(5, 1),
+                new(7, 1),
+                new(1, 2)
+            }
+            select (long) TreeCountOnSlope(_forest, def)
+        ).Aggregate((agg, next) => agg * next);
         
-        public IEnumerable<(int x, int y)> TobogganPositions(int count, int right, int down)
+        private int TreeCountOnSlope(Forest forest, SlopeDefinition def)
+            => TobogganPositions(forest.RowCount / def.Down, def)
+               .Count(pos => forest[pos.x, pos.y]);
+
+        private IEnumerable<(int x, int y)> TobogganPositions(int count, SlopeDefinition def)
             => from i in Enumerable.Range(0, count)
-               select (right * i, down * i);
+               select (def.Right * i, def.Down * i);
+
+        public record SlopeDefinition(int Right, int Down);
         
         public record Forest(bool[][] IsTreeMapYx, int PatternWidth)
         {

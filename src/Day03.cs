@@ -11,7 +11,7 @@ namespace aoc_runner
             => _forest = Forest.Parse(input);
 
         public int Part1()
-            => TreeCountOnSlope(_forest, new(3, 1));
+            => TreeCountOnSlope(new(3, 1));
 
         public long Part2() =>
         (
@@ -23,12 +23,12 @@ namespace aoc_runner
                 new(7, 1),
                 new(1, 2)
             }
-            select (long) TreeCountOnSlope(_forest, def)
+            select (long) TreeCountOnSlope(def)
         ).Aggregate((agg, next) => agg * next);
         
-        private int TreeCountOnSlope(Forest forest, SlopeDefinition def)
-            => TobogganPositions(forest.RowCount / def.Down, def)
-               .Count(pos => forest[pos.x, pos.y]);
+        private int TreeCountOnSlope(SlopeDefinition def)
+            => TobogganPositions(_forest.RowCount / def.Down, def)
+               .Count(pos => _forest[pos.x, pos.y]);
 
         private IEnumerable<(int x, int y)> TobogganPositions(int count, SlopeDefinition def)
             => from i in Enumerable.Range(0, count)

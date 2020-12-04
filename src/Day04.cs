@@ -13,19 +13,20 @@ namespace aoc_runner
 
         public Day04(string input)
         {
-            var passportInputs = input.Split(Environment.NewLine + Environment.NewLine);
-            var propertyRegex = new Regex(@"(?<key>\S*):(?<value>\S*)\s?");
-            var passportMatches = passportInputs.Select(x => propertyRegex.Matches(x));
+            var regex = new Regex(@"(?<key>\S*):(?<value>\S*)\s?");
 
+            var passportKeyValueMatches =
+                from onePassport in input.Split(Environment.NewLine + Environment.NewLine)
+                select regex.Matches(onePassport);
+            
             _passports = (
-                from passportMatch in passportMatches
+                from passportMatch in passportKeyValueMatches
                 select new Passport(
-                    
                     from match in passportMatch
-                    let key = match.Groups["key"].Value
-                    let value = match.Groups["value"].Value
-                    select (key, value)
-                    
+                    select (
+                        match.GetGroupValue("key"),
+                        match.GetGroupValue("value")
+                    )
                 )
             ).ToArray();
         }

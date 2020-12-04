@@ -54,11 +54,11 @@ namespace aoc_runner
                 GetValue("ecl") is "amb" or "blu" or "brn" or "gry" or "grn" or "hzl" or "oth" &&
                 GetValue("pid")?.Length == 9 && GetValue("pid")?.All(char.IsDigit) == true;
 
-            bool ValidateHeight(string? value) => (ToInt(value?[..^2]), value?[^2..]) switch
+            bool ValidateHeight(string? value) => (height: ToInt(value?[..^2]), unit: value?[^2..]) switch
             {
-                var (height, unit) when unit == "cm" && height is >= 150 and <= 193 => true,
-                var (height, unit) when unit == "in" && height is >= 59 and <= 76 => true,
-                _ => false,
+                {unit: "cm", height: >= 150 and <= 193} => true,
+                {unit: "in", height: >= 59 and <= 76} => true,
+                _ => false
             };
 
             bool ValidateHexColor(string? value) =>

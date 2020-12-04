@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Formats.Asn1;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -34,7 +35,7 @@ namespace aoc_runner
 
         public int Part2()
             => _passports.Count(pp => pp.IsValid());
-        
+
         record Passport(IReadOnlyDictionary<string, string> Properties)
         {
             public Passport(IEnumerable<(string key, string value)> kv)
@@ -52,7 +53,7 @@ namespace aoc_runner
                 ValidateHeight(GetValue("hgt")) &&
                 ValidateHexColor(GetValue("hcl")) &&
                 GetValue("ecl") is "amb" or "blu" or "brn" or "gry" or "grn" or "hzl" or "oth" &&
-                GetValue("pid")?.Length == 9 && GetValue("pid")?.All(char.IsDigit) == true;
+                ValidatePassportId(GetValue("pid"));
 
             bool ValidateHeight(string? value) => (height: ToInt(value?[..^2]), unit: value?[^2..]) switch
             {
@@ -62,8 +63,9 @@ namespace aoc_runner
             };
 
             bool ValidateHexColor(string? value) =>
-                value != null && value.Length == 7 && value[0] == '#' &&
-                value.Skip(1).All(c => char.IsDigit(c) || c is 'a' or 'b' or 'c' or 'd' or 'e' or 'f');
+                value?[0] == '#' && value.Length == 7 && value[1..].All(c => char.IsDigit(c) || c is >= 'a' and <= 'f');
+
+            bool ValidatePassportId(string? value) => value?.Length == 9 && value.All(char.IsDigit);
             
             string? GetValue(string propertyName) => Properties.TryGetValue(propertyName, out var val) ? val : null;
             int? GetIntValue(string propertyName) => ToInt(GetValue(propertyName));

@@ -1,12 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace aoc_runner
 {
     public class Day05
     {
-        public int Part1(string[] input) =>
-            input.Select(BoardingPass.Parse).Max(x => x.SeatId);
+        private readonly BoardingPass[] _boardingPasses;
+        public Day05(string[] input) => _boardingPasses = input.Select(BoardingPass.Parse).ToArray();
+        public int Part1() =>
+            _boardingPasses.Max(x => x.SeatId);
+
+        public int Part2()
+        {
+            var seatplan = new bool[128, 8];
+            foreach (var bp in _boardingPasses)
+                seatplan[bp.Row, bp.Column] = true;
+
+            var mySeat =
+                (
+                    from row in Enumerable.Range(0, 128)
+                    from column in Enumerable.Range(0, 8)
+                    select (row, column, istaken: seatplan[row, column])
+                )
+               .SkipWhile(x => !x.istaken)
+               .First(x => !x.istaken);
+
+            return new BoardingPass(mySeat.row, mySeat.column).SeatId;
+        }
+            
         
         public record BoardingPass(int Row, int Column)
         {

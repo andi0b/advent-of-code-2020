@@ -50,7 +50,7 @@ namespace aoc_runner.Infrastructure
 
         private object? CreateDayInstance()
         {
-            var firstConstructor = _dayType.GetConstructors().First();
+            var firstConstructor = _dayType.GetConstructors().Last();
             var parameterType = firstConstructor.GetParameters().FirstOrDefault()?.ParameterType;
 
             if (parameterType == null)

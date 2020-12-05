@@ -3,17 +3,15 @@ using System.Linq;
 
 namespace aoc_runner
 {
-    public record Day05
+    public record Day05(int[] TakenSeatIds)
     {
-        private readonly int[] _takenSeatIds;
-        
-        public Day05(string[] input) => _takenSeatIds = input.Select(ParseSeatId).ToArray();
+        public Day05(string[] input) : this( input.Select(ParseSeatId).ToArray()) {}
 
-        public int Part1() => _takenSeatIds.Max();
+        public int Part1() => TakenSeatIds.Max();
 
         public int Part2()
-            => Enumerable.Range(0, _takenSeatIds.Max() + 1) // all possible seats IDs
-                         .Except(_takenSeatIds)             // except the taken seats
+            => Enumerable.Range(0, TakenSeatIds.Max() + 1) // all possible seats IDs
+                         .Except(TakenSeatIds)             // except the taken seats
                          .Max();                            // my seat is the free seat with the highest id
                                                             // (the others are empty front row seats)
 

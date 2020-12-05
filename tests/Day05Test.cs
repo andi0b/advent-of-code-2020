@@ -26,5 +26,7 @@ namespace tests
          InlineData("BBFFBBFRLL", 820),
         ]
         void CheckParse(string input, int seatId) => Day05.ParseSeatId(input).Should().Be(seatId);
+
+        [Fact] void TestPart2() => new Day05(new[] {15, 16, 17, 19, 20, 21, 22}).Part2().Should().Be(18);
     }
 }

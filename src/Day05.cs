@@ -10,10 +10,10 @@ namespace aoc_runner
         public int Part1() => TakenSeatIds.Max();
 
         public int Part2()
-            => Enumerable.Range(0, TakenSeatIds.Max() + 1) // all possible seats IDs
-                         .Except(TakenSeatIds)             // except the taken seats
-                         .Max();                            // my seat is the free seat with the highest id
-                                                            // (the others are empty front row seats)
+            => Enumerable.Range(0, TakenSeatIds.Max()) // all possible seats IDs (including empty front rows, excluding last taken one)
+                         .Except(TakenSeatIds)         // except the taken seats
+                         .Max();                       // my seat is the free seat with the highest id
+                                                       // (the others are empty front row seats)
 
         public static int ParseSeatId(string boardingPass) => Convert.ToInt32(ConvertToBinary(boardingPass), 2);
 

@@ -6,12 +6,10 @@ namespace aoc_runner
 {
     public record Day06(Day06.Group[] Groups)
     {
-        public Day06(string input):this(System.Array.Empty<Group>())
-        {
-            var inputGroups = input.Split(Environment.NewLine + Environment.NewLine);
-            Groups = (from g in inputGroups
-                      select new Group(g.Split(Environment.NewLine))).ToArray();
-        }
+        public Day06(string input) : this(
+            (from g in input.Split(Environment.NewLine + Environment.NewLine)
+             select new Group(g.Split(Environment.NewLine))).ToArray()
+        ) { }
 
         public int Part1() => Groups.Sum(g => g.Union.Length);
         public int Part2() => Groups.Sum(g => g.Intersect.Length);

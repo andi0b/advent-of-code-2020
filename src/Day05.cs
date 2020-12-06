@@ -5,9 +5,7 @@ namespace aoc_runner
 {
     public record Day05(int[] TakenSeatIds)
     {
-        public Day05(string[] input) : this(input.Select(ParseSeatId).ToArray())
-        {
-        }
+        public Day05(string[] input) : this(input.Select(ParseSeatId).ToArray()) { }
 
         public int Part1() => TakenSeatIds.Max();
 

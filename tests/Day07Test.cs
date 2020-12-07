@@ -44,7 +44,7 @@ namespace tests
         {
             var parsed = BagRule.Parse(input);
             parsed.Color.Should().Be(expected.Color);
-            parsed.CanContain.Should().BeEquivalentTo(expected.CanContain);
+            parsed.Contains.Should().BeEquivalentTo(expected.Contains);
         }
     }
 }

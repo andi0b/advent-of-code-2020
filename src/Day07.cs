@@ -32,20 +32,14 @@ namespace aoc_runner
 
         public record BagRule(string Color, (string color, int num)[] CanContain)
         {
-            private static Regex Regex = new(@"(\d+) (\S+ \S+)");
-            public static BagRule Parse(string input)
-            {
-                var parts = input.TrimEnd('.').Split("contain");
-                var color = parts[0].Replace("bags", "").Trim();
-
-                var canContain =
-                    from numberedBag in parts[1].Split(',')
-                    let match = Regex.Match(numberedBag)
-                    where match.Success
-                    select (match.GetGroupValue(2), match.GetGroupValue<int>(1));
-
-                return new BagRule(color, canContain.ToArray());
-            }
+            public static BagRule Parse(string input) =>
+                new(
+                    Color: Regex.Match(input, @"^(\S+ \S+)").Groups[0].Value,
+                    CanContain: (
+                        from match in Regex.Matches(input, @"(\d+) (\S+ \S+)")
+                        select (match.Groups[2].Value, int.Parse(match.Groups[1].Value))
+                    ).ToArray()
+                );
         }
     }
 }

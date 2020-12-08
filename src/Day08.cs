@@ -52,18 +52,18 @@ namespace aoc_runner
     {
         public Statement CurrentStatement => Program.Statements[StatementPointer];
 
-        public bool IsTerminated => StatementPointer == Program.Statements.Length;
+        public bool IsTerminated => StatementPointer >= Program.Statements.Length;
 
-        public GameConsoleState NextStep() => CurrentStatement.Op switch
+        public GameConsoleState NextStep() => CurrentStatement switch
         {
-            Op.Acc => this with {
+            (Op.Acc, var param) => this with {
                 StatementPointer = StatementPointer + 1,
-                Accumulator = Accumulator + CurrentStatement.Param
+                Accumulator = Accumulator + param
                 },
 
-            Op.Nop => this with {StatementPointer = StatementPointer + 1},
+            (Op.Nop, _) => this with {StatementPointer = StatementPointer + 1},
 
-            Op.Jmp => this with {StatementPointer = StatementPointer + CurrentStatement.Param},
+            (Op.Jmp, var param) => this with {StatementPointer = StatementPointer + param},
         };
 
         public IEnumerable<GameConsoleState> NextSteps()

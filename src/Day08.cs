@@ -8,15 +8,7 @@ namespace aoc_runner
     {
         public Day08(string[] input) : this(Program.Parse(input)) { }
 
-        public int Part1()
-        {
-            var executedStatementsHistory = new HashSet<int>();
-
-            return new GameConsoleState(Program)
-                  .NextSteps()
-                  .TakeWhile(x => executedStatementsHistory.Add(x.StatementPointer))
-                  .Last().Accumulator;
-        }
+        public int Part1() => new GameConsoleState(Program).NextStepsWithInfiniteLoopDetection().Last().Accumulator;
 
         public int Part2()
         {
@@ -28,23 +20,13 @@ namespace aoc_runner
                     Op.Jmp => x.statement with {Op = Op.Nop},
                     Op.Nop => x.statement with {Op = Op.Jmp},
                 }
-                select ProgramWithReplacedStatement(x.idx, newStatement);
+                select Program.ReplaceStatementAt(x.idx, newStatement);
 
             var endStates =
-                from permutation in programPermutations
-                let executedStatementsHistory = new HashSet<int>()
-                select new GameConsoleState(permutation)
-                      .NextSteps()
-                      .TakeWhile(x => executedStatementsHistory.Add(x.StatementPointer))
-                      .Last();
+                from program in programPermutations
+                select new GameConsoleState(program).NextStepsWithInfiniteLoopDetection().Last();
 
             return endStates.Single(x => x.IsTerminated).Accumulator;
-            
-            Program ProgramWithReplacedStatement(int index, Statement newStatement) => Program with {
-                Statements = Program.Statements
-                                    .Select((s, i) => i == index ? newStatement : s)
-                                    .ToArray()
-                };
         }
     }
 
@@ -74,11 +56,23 @@ namespace aoc_runner
                 if (state.IsTerminated) yield break;
             }
         }
+
+        public IEnumerable<GameConsoleState> NextStepsWithInfiniteLoopDetection()
+        {
+            var executedStatementsIds = new HashSet<int>();
+            return NextSteps()
+               .TakeWhile(x => executedStatementsIds.Add(x.StatementPointer));
+        }
     }
 
     public record Program(Statement[] Statements)
     {
         public static Program Parse(string[] input) => new(input.Select(Statement.Parse).ToArray());
+
+        public Program ReplaceStatementAt(int index, Statement newStatement) => this with {
+            Statements = Statements.Select((s, i) => i == index ? newStatement : s)
+                                   .ToArray()
+            };
     }
 
     public record Statement(Op Op, int Param)
@@ -111,5 +105,4 @@ namespace aoc_runner
         /// </summary>
         Jmp
     };
-
 }

@@ -22,6 +22,7 @@ namespace tests
         [Fact] Day08 GetInstance() => new Day08(_demoInput);
 
         [Fact] void Part1() => GetInstance().Part1().Should().Be(5);
+        [Fact] void Part2() => GetInstance().Part2().Should().Be(8);
 
     }
 }

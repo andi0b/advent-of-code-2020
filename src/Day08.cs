@@ -17,11 +17,44 @@ namespace aoc_runner
                   .TakeWhile(x => executedStatementsHistory.Add(x.StatementPointer))
                   .Last().Accumulator;
         }
+
+        public int Part2()
+        {
+            var programPermutations =
+                from numberedStatement in Program.Statements.Select((statement, i) => (statement, i))
+                where numberedStatement.statement.Op is Op.Jmp or Op.Nop
+                let statement = Program.Statements[numberedStatement.i]
+                let newStatement = statement.Op switch
+                {
+                    Op.Jmp => statement with {Op = Op.Nop},
+                    Op.Nop => statement with{Op = Op.Jmp},
+                    _ => throw new InvalidOperationException()
+                }
+                select Program with {
+                    Statements = Program.Statements[..numberedStatement.i]
+                                        .Concat(new[] {newStatement})
+                                        .Concat(Program.Statements[(numberedStatement.i + 1)..])
+                                        .ToArray()
+                    };
+
+
+            var endStates =
+                from permutation in programPermutations
+                let executedStatementsHistory = new HashSet<int>()
+                select new GameConsoleState(permutation)
+                      .NextSteps()
+                      .TakeWhile(x => executedStatementsHistory.Add(x.StatementPointer))
+                      .Last();
+
+            return endStates.Single(x => x.IsTerminated).Accumulator;
+        }
     }
 
     public record GameConsoleState(Program Program, int StatementPointer = 0, int Accumulator = 0)
     {
         public Statement CurrentStatement => Program.Statements[StatementPointer];
+
+        public bool IsTerminated => StatementPointer == Program.Statements.Length;
 
         public GameConsoleState Step() => CurrentStatement.Op switch
         {
@@ -44,7 +77,10 @@ namespace aoc_runner
         public IEnumerable<GameConsoleState> NextSteps()
         {
             for (var state = Step();; state = state.Step())
+            {
                 yield return state;
+                if (state.IsTerminated) yield break;
+            }
         }
     }
 

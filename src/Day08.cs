@@ -21,22 +21,14 @@ namespace aoc_runner
         public int Part2()
         {
             var programPermutations =
-                from numberedStatement in Program.Statements.Select((statement, i) => (statement, i))
-                where numberedStatement.statement.Op is Op.Jmp or Op.Nop
-                let statement = Program.Statements[numberedStatement.i]
-                let newStatement = statement.Op switch
+                from x in Program.Statements.Select((statement, idx) => (statement, idx))
+                where x.statement.Op is Op.Jmp or Op.Nop
+                let newStatement = x.statement.Op switch
                 {
-                    Op.Jmp => statement with {Op = Op.Nop},
-                    Op.Nop => statement with{Op = Op.Jmp},
-                    _ => throw new InvalidOperationException()
+                    Op.Jmp => x.statement with {Op = Op.Nop},
+                    Op.Nop => x.statement with {Op = Op.Jmp},
                 }
-                select Program with {
-                    Statements = Program.Statements[..numberedStatement.i]
-                                        .Concat(new[] {newStatement})
-                                        .Concat(Program.Statements[(numberedStatement.i + 1)..])
-                                        .ToArray()
-                    };
-
+                select ProgramWithReplacedStatement(x.idx, newStatement);
 
             var endStates =
                 from permutation in programPermutations
@@ -47,6 +39,12 @@ namespace aoc_runner
                       .Last();
 
             return endStates.Single(x => x.IsTerminated).Accumulator;
+            
+            Program ProgramWithReplacedStatement(int index, Statement newStatement) => Program with {
+                Statements = Program.Statements
+                                    .Select((s, i) => i == index ? newStatement : s)
+                                    .ToArray()
+                };
         }
     }
 
@@ -56,27 +54,21 @@ namespace aoc_runner
 
         public bool IsTerminated => StatementPointer == Program.Statements.Length;
 
-        public GameConsoleState Step() => CurrentStatement.Op switch
+        public GameConsoleState NextStep() => CurrentStatement.Op switch
         {
             Op.Acc => this with {
                 StatementPointer = StatementPointer + 1,
                 Accumulator = Accumulator + CurrentStatement.Param
                 },
 
-            Op.Nop => this with {
-                StatementPointer = StatementPointer + 1,
-                },
+            Op.Nop => this with {StatementPointer = StatementPointer + 1},
 
-            Op.Jmp => this with {
-                StatementPointer = StatementPointer + CurrentStatement.Param
-                },
-
-            _ => throw new InvalidOperationException()
+            Op.Jmp => this with {StatementPointer = StatementPointer + CurrentStatement.Param},
         };
 
         public IEnumerable<GameConsoleState> NextSteps()
         {
-            for (var state = Step();; state = state.Step())
+            for (var state = NextStep();; state = state.NextStep())
             {
                 yield return state;
                 if (state.IsTerminated) yield break;

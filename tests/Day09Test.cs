@@ -31,7 +31,12 @@ namespace tests
         };
 
         [Fact] public Day09 GetInstance() => new Day09(_demoInput);
-        [Fact] public void Part1() => GetInstance().SolvePart1(5).Should().Be(127);
-        [Fact] public void Part2() => GetInstance().SolvePart2(5).Should().Be(62);
+        [Fact] public void Part1() => GetInstance().Part1(5).Should().Be(127);
+        [Fact] public void Part2() => GetInstance().Part2(5).Should().Be(62);
+        
+        [Fact] public Day09_Pretty GetInstance_Pretty() => new Day09_Pretty(_demoInput);
+        [Fact] public void Part1_Pretty() => GetInstance_Pretty().Part1(5).Should().Be(127);
+        [Fact] public void Part2_Pretty() => GetInstance_Pretty().Part2(5).Should().Be(62);
+
     }
 }

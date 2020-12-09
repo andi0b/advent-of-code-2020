@@ -8,24 +8,25 @@ namespace aoc_runner.Infrastructure
 {
     public class DayRunner
     {
-        private static Dictionary<int, Type> DayTypes;
+        public static ILookup<int, Type> DayTypes;
 
-        public static IEnumerable<int> AvailableDays => DayTypes.Keys.OrderBy(x => x);
+        public static IEnumerable<int> AvailableDays => DayTypes.Select(x=>x.Key).OrderBy(x => x);
         
         static DayRunner()
         {
             var assembly = Assembly.GetExecutingAssembly();
 
             // auto discover solution types
-            DayTypes = new Dictionary<int, Type>(
+            DayTypes =
+            (
                 from type in assembly.GetTypes()
-                where type.Namespace=="aoc_runner"
+                where type.Namespace == "aoc_runner"
                 where type.Name?.StartsWith("Day") == true
-                let dayPart = type.Name.Replace("Day", "")
+                let dayPart = type.Name[3..5]
                 let parsed = new {canParse = int.TryParse(dayPart, out var parsed), day = parsed}
                 where parsed.canParse
                 select new KeyValuePair<int, Type>(parsed.day, type)
-            );
+            ).ToLookup(x => x.Key, x => x.Value);
         }
 
         private readonly int         _day;
@@ -34,12 +35,12 @@ namespace aoc_runner.Infrastructure
         private readonly Type        _dayType;
         private readonly TimeSpan    _initTime;
 
-        public DayRunner(int day)
+        public DayRunner(int day, Type dayType)
         {
             _day    = day;
             _loader = new InputLoader(day);
-            
-            _dayType = DayTypes[day];
+
+            _dayType = dayType;
 
             var sw = Stopwatch.StartNew();
             _dayInstance = CreateDayInstance() 
@@ -62,7 +63,7 @@ namespace aoc_runner.Infrastructure
 
         public void Run()
         {
-            Console.WriteLine($"-------- Day {_day} (init took {_initTime.TotalMilliseconds:0.00}ms):");
+            Console.WriteLine($"-------- Day {_day} ({_dayType.Name}) (init took {_initTime.TotalMilliseconds:0.00}ms):");
             ExecutePart(1);
             ExecutePart(2);
             
@@ -83,11 +84,16 @@ namespace aoc_runner.Infrastructure
             
             Console.Write($"Part {partId}... ");
 
-            var parameterType = method.GetParameters().FirstOrDefault()?.ParameterType;
+            var firstParameter = method.GetParameters().FirstOrDefault();
+            var parameterType = firstParameter?.ParameterType;
 
-            var parameters = parameterType == null
+            var parameterCount = method.GetParameters().Length;
+
+            var parameters = firstParameter == null
                 ? new object[0]
-                : new[] {GetParameterValue(parameterType!)};
+                : firstParameter.IsOptional
+                    ? Enumerable.Repeat(Type.Missing, parameterCount).ToArray()
+                    : new[] {GetParameterValue(parameterType!)};
 
             var sw = Stopwatch.StartNew();
             var returnValue = method.Invoke(_dayInstance, parameters);

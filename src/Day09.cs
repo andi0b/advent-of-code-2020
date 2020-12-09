@@ -8,11 +8,7 @@ namespace aoc_runner
         private readonly long[] _numbers;
         public Day09(long[] Numbers) => _numbers = Numbers;
 
-        // needed for the reflection based runner that doesn't support default parameters
-        public long Part1() => SolvePart1(25);
-        public long Part2() => SolvePart2(25);
-
-        public long SolvePart1(int preambleLength)
+        public long Part1(int preambleLength=25)
         {
             for (int i = preambleLength; i < _numbers.Length; i++)
             {
@@ -25,12 +21,12 @@ namespace aoc_runner
             throw new Exception("no solution");
         }
 
-        public long SolvePart2(int preambleLength)
+        public long Part2(int preambleLength=25)
         {
-            var invalidNumber = SolvePart1(preambleLength);
+            var invalidNumber = Part1(preambleLength);
 
             for (var length=2;length<_numbers.Length; length++)
-            for (var offset = 0; offset < _numbers.Length-1; offset++)
+            for (var offset = 0; offset+length < _numbers.Length-1; offset++)
             {
                 if (offset+length>=_numbers.Length) continue;
 

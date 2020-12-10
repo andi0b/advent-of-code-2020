@@ -14,5 +14,6 @@ namespace tests
 
         [Fact] void Part1() => GetInstance().Part1().Should().Be(220);
         [Fact] void Part2() => GetInstance().Part2().Should().Be(19208);
+        [Fact] void Part2_Alternative() => GetInstance().Part2_Alternative().Should().Be(19208);
     }
 }

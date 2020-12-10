@@ -35,7 +35,21 @@ namespace aoc_runner.Infrastructure
         private readonly Type        _dayType;
         private readonly TimeSpan    _initTime;
 
-        public DayRunner(int day, Type dayType)
+        public static void Run(int day)
+        {
+            if (!DayTypes.Contains(day)) throw new ArgumentException($"Day {day} not found", nameof(day));
+            foreach (var type in DayTypes[day])
+                new DayRunner(day, type).RunInternal();
+        }
+
+        public static void Run()
+        {
+            foreach (var day in AvailableDays)
+                Run(day);
+        }
+
+
+        private DayRunner(int day, Type dayType)
         {
             _day    = day;
             _loader = new InputLoader(day);
@@ -61,7 +75,7 @@ namespace aoc_runner.Infrastructure
             return Activator.CreateInstance(_dayType, parameters);
         }
 
-        public void Run()
+        private void RunInternal()
         {
             Console.WriteLine($"-------- Day {_day} ({_dayType.Name}) (init took {_initTime.TotalMilliseconds:0.00}ms):");
             ExecutePart(1);

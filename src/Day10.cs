@@ -9,12 +9,11 @@ namespace aoc_runner
     {
         private readonly int[] _adapterJolts =
             Input.Append(Input.Max() + 3)
-                 .Append(0)
                  .OrderBy(x => x)
                  .ToArray();
         
         public int Part1() =>
-            _adapterJolts.Skip(1).Aggregate(
+            _adapterJolts.Aggregate(
                 (prev: 0, diff1: 0, diff3: 0),
                 (acc, next) => (next - acc.prev) switch
                 {
@@ -25,7 +24,7 @@ namespace aoc_runner
                 acc => acc.diff1 * acc.diff3);
 
         public long Part2() =>
-            _adapterJolts.Skip(1).Aggregate(
+            _adapterJolts.Aggregate(
                 (prevJolt: 0, sums: new[] {1L, 0, 0}),
                 (acc, nextJolt) =>
                 {

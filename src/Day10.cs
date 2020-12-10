@@ -25,18 +25,15 @@ namespace aoc_runner
 
         public long Part2() =>
             _adapterJolts.Aggregate(
-                (prevJolt: 0, sums: new[] {1L, 0, 0}),
-                (acc, nextJolt) =>
-                {
-                    var joltDiff = nextJolt - acc.prevJolt;
-                    var relevantSums = acc.sums[..(4 - joltDiff)];
-                    return (nextJolt,
-                        Enumerable.Repeat(0L, joltDiff - 1)
-                                  .Prepend(relevantSums.Sum())
-                                  .Concat(relevantSums)
-                                  .ToArray());
-                },
-                acc => acc.sums.First());
+                new[] {(jolts: 0, count: 1L)},
+                (acc, nextJolts) =>
+                    acc[^Math.Min(2, acc.Length)..]
+                       .Append((
+                                   jolts: nextJolts,
+                                   count: acc.Where(prev => nextJolts - prev.jolts <= 3).Sum(x => x.count)
+                               ))
+                       .ToArray(),
+                acc => acc.Last().count);
         
         public long Part2_Alternative() =>
             Enumerable.Range(1, _adapterJolts.Max())

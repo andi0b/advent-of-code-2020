@@ -1,112 +1,109 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
+using System.Threading;
 
 namespace aoc_runner
 {
-    public record Day11(Day11.SeatMap Seats)
+    public class Day11
     {
-        public Day11(string[] input) : this(SeatMap.Parse(input))
+        private readonly string[] _input;
+        private          char[,]  _map;
+        private          int      _height;
+        private          int      _width;
+
+        public Day11(string[] input) { _input = input; }
+
+        private void ReadInput(string[] input)
         {
+            _width  = input[0].Length;
+            _height = input.Length;
+
+            _map = new char[_width, _height];
+
+            for (var x = 0; x < _width; x++)
+            for (var y = 0; y < _height; y++)
+                _map[x, y] = input[y][x];
         }
 
-        public int Part1()
+        public int Part1() => Simulate(OccupiedAdjacentSeats,4);
+        public int Part2() => Simulate(OccupiedVisibleSeats,5);
+
+        public int Simulate(Func< int,  int, int> adjacentSeatCount, int triggerSeatCount)
         {
-            var (permutation, isdifferent) = Seats.NextPermutation();
-            for (var i = 1;; i++)
+            ReadInput(_input);
+            
+            bool isDifferent;
+            var newMap = new char[_width, _height];
+
+            do
             {
-                if (!isdifferent) return permutation.Map.OfType<SeatType>().Count(x=>x == SeatType.Taken);
-                (permutation, isdifferent) = permutation.NextPermutation();
-            }
-        }
-        
+                isDifferent = false;
 
-        public record SeatMap(SeatType[,] Map, int Width, int Height)
-        {
-            public (SeatMap permutation, bool isdifferent) NextPermutation()
-            {
-                var newMap = new SeatType[Width, Height];
-
-                var isDifferent = false;
-
-                for (var x = 0; x < Width; x++)
-                for (var y = 0; y < Height; y++)
+                for (var y = 0; y < _height; y++)
+                for (var x = 0; x < _width; x++)
                 {
-                    newMap[x, y] = Map[x, y] switch
+                    var newValue = newMap[x, y] = _map[x, y] switch
                     {
-                        SeatType.Empty when AdjacentSeats(x, y).All(x => x != SeatType.Taken) => SeatType.Taken,
-                        SeatType.Taken when AdjacentSeats(x, y).Count(x => x == SeatType.Taken) >= 4 => SeatType.Empty,
+                        'L' when adjacentSeatCount(x, y) == 0 => '#',
+                        '#' when adjacentSeatCount(x, y) >= triggerSeatCount => 'L',
                         var seatType => seatType
                     };
 
-                    if (newMap[x, y] != Map[x, y])
+                    if (_map[x, y] != newValue)
                         isDifferent = true;
                 }
+                
+                var intermediate = _map;
+                _map   = newMap;
+                newMap = intermediate;
+            } while (isDifferent);
 
-                return (this with{Map = newMap}, isDifferent);
-            }
-
-            public IEnumerable<SeatType> AdjacentSeats(int x, int y) =>
-                from xOff in new[] {-1, 0, 1}
-                from yOff in new[] {-1, 0, 1}
-                where !(xOff == 0 && yOff == 0)
-                let adjX = xOff + x
-                let adjY = yOff + y
-                where adjX >= 0 && adjX < Width
-                               && adjY >= 0 && adjY < Height
-                select Map[adjX, adjY];
-            
-            public static SeatMap Parse(string[] input)
-            {
-                var width = input[0].Length;
-                var height = input.Length;
-
-                var map = new SeatType[width, height];
-
-                for (var x = 0; x < width; x++)
-                for (var y = 0; y < height; y++)
-                    map[x, y] = Parse(input[y][x]);
-
-                return new(map, width, height);
-            }
-
-            static SeatType Parse(char c) => c switch
-            {
-                '#' => SeatType.Taken,
-                'L' => SeatType.Empty,
-                _ => SeatType.Floor
-            };
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder();
-                for (var y = 0; y < Height; y++)
-                {
-                    for (var x = 0; x < Width; x++)
-                    {
-                        sb.Append(Map[x, y]switch
-                        {
-                            SeatType.Empty => 'L',
-                            SeatType.Taken => '#',
-                            _ => '.'
-                        });
-                    }
-
-                    if (y != Height - 1) sb.AppendLine();
-                }
-
-                return sb.ToString();
-            }
+            return _map.OfType<char>().Count(x => x == '#');
         }
 
-        public enum SeatType
+        private static readonly (int x, int y)[] Directions =
         {
-            Floor,
-            Empty,
-            Taken
+            (-1, -1), (0, -1), (1, -1),
+            (-1, 0), (1, 0),
+            (-1, 1), (0, 1), (1, 1)
         };
+
+        private int OccupiedAdjacentSeats(int x, int y)
+        {
+            var occupiedSeats = 0;
+            foreach (var direction in Directions)
+            {
+                var x1 = direction.x + x;
+                var y1 = direction.y + y;
+                if (InBounds(x1, y1) && _map[x1, y1] == '#')
+                    occupiedSeats++;
+            }
+
+            return occupiedSeats;
+        }
+
+        private int OccupiedVisibleSeats(int x, int y)
+        {
+            var occupiedSeats = 0;
+
+            foreach (var direction in Directions)
+                for (var distance = 1;; distance++)
+                {
+                    var x1 = direction.x * distance + x;
+                    var y1 = direction.y * distance + y;
+                    
+                    if (!InBounds(x1, y1)) break;
+                    if (_map[x1, y1] == 'L') break;
+                    if (_map[x1, y1] == '#')
+                    {
+                        occupiedSeats++;
+                        break;
+                    }
+                }
+
+            return occupiedSeats;
+        }
+
+        public bool InBounds(int x, int y) => x >= 0 && y >= 0 && x < _width && y < _height;
     }
 }

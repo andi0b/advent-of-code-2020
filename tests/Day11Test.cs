@@ -23,34 +23,5 @@ namespace tests
 
         [Fact] void Part1() => GetInstance().Part1().Should().Be(37);
         [Fact] void Part2() => GetInstance().Part2().Should().Be(26);
-
-//
-//         [Fact]
-//         private void FirstRound() => GetInstance().Seats.NextPermutation().permutation.ToString().Should().Be(
-//             @"#.##.##.##
-// #######.##
-// #.#.#..#..
-// ####.##.##
-// #.##.##.##
-// #.#####.##
-// ..#.#.....
-// ##########
-// #.######.#
-// #.#####.##"
-//         );
-//         
-//         [Fact]
-//         private void SecondRound() => GetInstance().Seats.NextPermutation().permutation.NextPermutation().permutation.ToString().Should().Be(
-//             @"#.LL.L#.##
-// #LLLLLL.L#
-// L.L.L..L..
-// #LLL.LL.L#
-// #.LL.LL.LL
-// #.LLLL#.##
-// ..L.L.....
-// #LLLLLLLL#
-// #.LLLLLL.L
-// #.#LLLL.##"
-//         );
     }
 }

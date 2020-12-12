@@ -18,5 +18,6 @@ namespace tests
         [Fact] Day12 GetInstance() => new Day12(input);
 
         [Fact] void Part1() => GetInstance().Part1().Should().Be(25);
+        [Fact] void Part2() => GetInstance().Part2().Should().Be(286);
     }
 }

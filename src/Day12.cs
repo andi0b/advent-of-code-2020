@@ -64,11 +64,11 @@ namespace aoc_runner
         {
             public override ShipWaypointPosition NextPosition((char, int) instruction) => instruction switch
             {
-                ('F', { } times) => this with{X = X + Waypoint.X * times, Y = Y + Waypoint.Y * times},
-                ('R', 90) or ('L', 270) => this with{ Waypoint = Waypoint.TurnRight()},
-                ('L', 90) or ('R', 270) => this with{ Waypoint = Waypoint.TurnLeft()},
-                (_, 180) => this with{ Waypoint = Waypoint.TurnHalfWay()},
-                _ => this with {Waypoint = Waypoint.Travel(instruction)}
+                ('F', { } times) => this with{ X = X + Waypoint.X * times, Y = Y + Waypoint.Y * times },
+                ('R', 90) or ('L', 270) => this with{ Waypoint = Waypoint.TurnRight() },
+                ('L', 90) or ('R', 270) => this with{ Waypoint = Waypoint.TurnLeft() },
+                ('L' or 'R', 180) => this with{ Waypoint = Waypoint.TurnHalfWay() },
+                _ => this with { Waypoint = Waypoint.Travel(instruction) }
             };
         }
     }

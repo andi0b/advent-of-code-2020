@@ -60,11 +60,10 @@ namespace aoc_runner
         public record MaskInstruction(long OrMask, long AndMask, long FloatMask) : Instruction
         {
             public long ApplyTo(long number) => (number | OrMask) & AndMask;
-            public long ApplyTo2(long number) => number | OrMask;
 
             public IEnumerable<long> AddressDecoder(long address)
             {
-                var changedAddress = ApplyTo2(address);
+                var changedAddress = address | OrMask;
 
                 var setBits = Enumerable.Range(0, 36)
                                         .Where(x => (1L << x & FloatMask) != 0)
@@ -72,14 +71,20 @@ namespace aoc_runner
 
                 for (int i = 0; i < 1 << setBits.Length; i++)
                 {
-                    var str = Enumerable.Repeat('X', 36).ToArray();
+                    var permutation = changedAddress;
                     for (var j = 0; j < setBits.Length; j++)
                     {
-                        str[setBits[j]] = ((i >> j) & 1) == 0 ? '0' : '1';
+                        if (((i >> j) & 1) == 0)
+                            UnsetBit(ref permutation, setBits[j]);
+                        else
+                            SetBit(ref permutation, setBits[j]);
                     }
-                    
-                    yield return Parse(new string(str.Reverse().ToArray())).ApplyTo(changedAddress);
+
+                    yield return permutation;
                 }
+
+                static void SetBit(ref long num, int bitPosition) => num |= 1 << bitPosition;
+                static void UnsetBit(ref long num, int bitPosition) => num &= ~(1 << bitPosition);
             }
 
             public new static MaskInstruction Parse(string input) => new(

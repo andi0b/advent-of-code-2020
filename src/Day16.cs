@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -16,6 +17,43 @@ namespace aoc_runner
             where !Rules.Any(r => r.InRanges(number))
             select number
         ).Sum();
+
+        public long Part2(string startsWith="departure")
+        {
+            var validTickets =
+                NearbyTickets
+                   .Prepend(MyTicket)
+                   .Where(t => t.All(num => Rules.Any(r => r.InRanges(num))))
+                   .ToArray();
+
+            var availableRules = Rules.ToList();
+
+            var ruleMapping = new Dictionary<int, Rule>();
+
+            while (availableRules.Any())
+                for (var column = 0; column < MyTicket.Length; column++)
+                {
+                    var matchingRules = availableRules.Where(r => validTickets.Select(x => x[column]).All(r.InRanges))
+                                                      .Take(2).ToArray();
+
+                    if (matchingRules.Length != 1)
+                        continue;
+
+                    var matchingRule = matchingRules[0];
+
+                    availableRules.Remove(matchingRule);
+                    ruleMapping.Add(column, matchingRule);
+                }
+
+
+            var selectedRules = ruleMapping.Where(kv => kv.Value.Name.StartsWith(startsWith));
+            var selectedColumnIds = selectedRules.Select(kv => kv.Key).ToArray();
+
+            return MyTicket.Select((number, n) => (number, n))
+                           .Where(x => selectedColumnIds.Contains(x.n))
+                           .Select(x => x.number)
+                           .Aggregate(1L, (acc, next) => acc * next);
+        }
         
         private static Day16 Parse(string input)
         {

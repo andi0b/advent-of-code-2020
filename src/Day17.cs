@@ -6,7 +6,6 @@ namespace aoc_runner
 {
     public record Day17(Day17.PocketDimension InitialDimension)
     {
-
         public Day17(string input) :this(PocketDimension.Parse(input)) { }
 
         public int Part1() => Solve(InitialDimension);
@@ -16,9 +15,8 @@ namespace aoc_runner
             Enumerable.Repeat(true, 6)
                       .Aggregate(dimension, (acc, _) => acc.NextIteration())
                       .CubesOn.Count;
-
-
-        public record PocketDimension(HashSet<(int x, int y, int z, int w)> CubesOn, bool Enable4ThDimension=false)
+        
+        public record PocketDimension(HashSet<long> CubesOn, bool Enable4ThDimension=false)
         {
             public PocketDimension NextIteration()
             {
@@ -26,7 +24,7 @@ namespace aoc_runner
                 
                 var (boundsX, boundsY, boundsZ, boundsW) = GetBounds();
 
-                var next = new HashSet<(int x, int y, int z, int w)>();
+                var next = new HashSet<long>();
                 
                 if (!Enable4ThDimension) boundsW = (1, -1);
                 for (var w = boundsW.min - 1; w <= boundsW.max + 1; w++)
@@ -36,14 +34,13 @@ namespace aoc_runner
                 {
                     var onNeighbour =
                         from direction in neighbourDirections
-                        let neighbour = (x + direction.x, y + direction.y, z + direction.z, w + direction.w)
-                        where CubesOn.Contains(neighbour)
-                        select neighbour;
+                        where CubesOn.Contains(Encode(x + direction.x, y + direction.y, z + direction.z, w + direction.w))
+                        select direction;
                     
                     // just count until we reach 4
                     var onNeighbourCount = onNeighbour.Take(4).Count();
 
-                    var cur = (x, y, z, w);
+                    var cur = Encode(x, y, z, w);
                     var curValue = CubesOn.Contains(cur);
 
                     var newValue = (onNeighbourCount, curValue) switch
@@ -61,12 +58,12 @@ namespace aoc_runner
             }
 
             public static PocketDimension Parse(string input)
-                => new(new HashSet<(int, int, int, int)>(
+                => new(new HashSet<long>(
                            from line in input.Split(Environment.NewLine).Select((value, num) => (value, num))
                            from chr in line.value.Select((value, num) => (value, num))
                            where chr.value == '#'
-                           select (chr.num, line.num, 0, 0))
-                );
+                           select Encode(chr.num, line.num, 0, 0)
+                       ));
 
             private ((int min, int max) x, (int min, int max) y, (int min, int max) z, (int min, int max) w) GetBounds() =>
                 CubesOn.Aggregate((
@@ -75,13 +72,21 @@ namespace aoc_runner
                                       z: (min: int.MaxValue, max: int.MinValue),
                                       w: (min: int.MaxValue, max: int.MinValue)
                                   ),
-                                  (acc, next) => (
-                                      (Math.Min(acc.x.min, next.x), Math.Max(acc.x.max, next.x)),
-                                      (Math.Min(acc.y.min, next.y), Math.Max(acc.y.max, next.y)),
-                                      (Math.Min(acc.z.min, next.z), Math.Max(acc.z.max, next.z)),
-                                      (Math.Min(acc.w.min, next.w), Math.Max(acc.w.max, next.w))
-                                  ));
+                                  (acc, next) =>
+                                  {
+                                      var nxd = Decode(next);
+                                      return (
+                                          (Math.Min(acc.x.min, nxd.x), Math.Max(acc.x.max, nxd.x)),
+                                          (Math.Min(acc.y.min, nxd.y), Math.Max(acc.y.max, nxd.y)),
+                                          (Math.Min(acc.z.min, nxd.z), Math.Max(acc.z.max, nxd.z)),
+                                          (Math.Min(acc.w.min, nxd.w), Math.Max(acc.w.max, nxd.w))
+                                      );
+                                  });
 
+            public static long Encode(in int x, in int y, in int z, in int w) => ((long) x << 48) + ((long) y << 32) + ((long) z << 16) + w;
+
+            public static (int x, int y, int z, int w) Decode(long l) => ((int) (l >> 48), (short) (l >> 32), (short) (l >> 16), (short) l);
+            
             private (int x, int y, int z, int w)[] GetNeighbourDirections() => (
                 from x in Enumerable.Range(-1, 3)
                 from y in Enumerable.Range(-1, 3)

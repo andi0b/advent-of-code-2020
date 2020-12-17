@@ -6,9 +6,14 @@ namespace tests
 {
     public class Day17Test
     {
-        [Fact]
-        public void Part1() => new Day17(@".#.
+        private string _input = @".#.
 ..#
-###").Part1().Should().Be(112);
+###";
+
+        [Fact]
+        public void Part1() => new Day17(_input).Part1().Should().Be(112);
+        
+        [Fact]
+        public void Part2() => new Day17(_input).Part2().Should().Be(848);
     }
 }

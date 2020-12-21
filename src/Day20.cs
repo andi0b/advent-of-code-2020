@@ -13,13 +13,14 @@ namespace aoc_runner
         public Day20(string input) 
             : this(input.Split(Environment.NewLine+Environment.NewLine).Select(Tile.Parse).ToArray()) { }
 
+        private readonly Tile[] _allPermutations = Tiles.SelectMany(x => x.AllPermutations()).ToArray();
+
+        
         public long Part1()
         {
-            var allPermutations = Tiles.SelectMany(x => x.AllPermutations()).ToArray();
-
-            var cornerTiles = allPermutations.Where(i => !allPermutations.Any(j => j.RightId == i.LeftId && j.TileId != i.TileId) &&
-                                                         !allPermutations.Any(j => j.TopId == i.BottomId && j.TileId != i.TileId))
-                                             .ToArray();
+            var cornerTiles = _allPermutations.Where(i => !_allPermutations.Any(j => j.RightId == i.LeftId && j.TileId != i.TileId) &&
+                                                          !_allPermutations.Any(j => j.TopId == i.BottomId && j.TileId != i.TileId))
+                                              .ToArray();
 
             var ids = cornerTiles.Select(x => x.TileId).Distinct().ToArray();
 
@@ -30,25 +31,74 @@ namespace aoc_runner
         
         public long Part2()
         {
-            var placedTiles = new Dictionary<(int x, int y), Tile>();
+            
+            var topLeftCornerTiles = _allPermutations.Where(i => !_allPermutations.Any(j => j.RightId == i.LeftId && j.TileId != i.TileId) &&
+                                                                !_allPermutations.Any(j => j.BottomId == i.TopId && j.TileId != i.TileId))
+                                                    .ToArray();
 
+            foreach (var tlct in topLeftCornerTiles)
+            {
+                var placedTiles = PlaceTiles(tlct);
+
+                var gridWith = placedTiles.Keys.Max(i => i.x) + 1;
+                var gridHeight = placedTiles.Keys.Max(i => i.y) + 1;
+                
+                char Grid(int x, int y) => placedTiles![(x / 8, y / 8)].Pixels[y % 8 + 1][x % 8 + 1];
+
+                var seaMonster = new[]
+                {
+                    "                  # ".ToArray(),
+                    "#    ##    ##    ###".ToArray(),
+                    " #  #  #  #  #  #   ".ToArray()
+                };
+
+                bool IsSeaMonsterAt((int x, int y) location)
+                {
+                    for (var y = 0; y < 3; y++)
+                    for (var x = 0; x < 20; x++)
+                    {
+                        if (seaMonster![y][x] == ' ') continue;
+                        if (Grid(location.x + x, location.y + y) != '#') return false;
+                    }
+
+                    return true;
+                }
+
+                var seaMonsterLocations =
+                    from x in Enumerable.Range(0, gridWith * 8 - 20)
+                    from y in Enumerable.Range(0, gridHeight * 8 - 3)
+                    let potentialLocation = (x, y)
+                    where IsSeaMonsterAt(potentialLocation)
+                    select potentialLocation;
+
+                var seaMonsterCount = seaMonsterLocations.Count();
+
+                if (seaMonsterCount > 0)
+                {
+                    var roughness = 0; 
+                    
+                    for (var y = 0; y < gridHeight*8; y++)
+                    for (var x = 0; x < gridWith * 8; x++)
+                    {
+                        if (Grid(x, y) == '#') roughness++;
+                    }
+
+                    return roughness - seaMonsterCount * 15;
+                }
+            }
+
+            return -1;
+        }
+
+        Dictionary<(int x, int y), Tile> PlaceTiles(Tile topLeftCorner)
+        {
+            var placedTiles = new Dictionary<(int x, int y), Tile>();
             bool IsPlaced(Tile tile) => placedTiles!.Values.Any(x => x.TileId == tile.TileId);
             
-            var allPermutations = Tiles.SelectMany(x => x.AllPermutations()).ToArray();
-            var leftLookup = allPermutations.ToLookup(x => x.LeftId);
-            var topLookup = allPermutations.ToLookup(x => x.RightId);
-
-
-            var topLeftTiles = allPermutations.Where(i => !allPermutations.Any(j => j.RightId == i.LeftId && j.TileId != i.TileId) &&
-                                                          !allPermutations.Any(j => j.TopId == i.BottomId && j.TileId != i.TileId))
-                                              .ToArray();
-
-
-            placedTiles[(0, 0)] = allPermutations.Last();
+            placedTiles[(0, 0)] = topLeftCorner;
 
             var x = 1;
             var y = 0;
-
             while (true)
             {
                 placedTiles.TryGetValue((x - 1, y), out var leftTile);
@@ -58,27 +108,31 @@ namespace aoc_runner
                 {
                     break;
                 }
-                
-                var matchingTiles = allPermutations.Where(i => (leftTile is null || i.LeftId == leftTile.RightId) &&
-                                                               (topTile is null || i.TopId == topTile.BottomId))
-                                                   .Where(i => !IsPlaced(i));
+
+                var matchingTiles = _allPermutations.Where(i => (leftTile is null || i.LeftId == leftTile.RightId) &&
+                                                                (topTile is null || i.TopId == topTile.BottomId))
+                                                    .Where(i => !IsPlaced(i));
 
                 var firstMatching = matchingTiles.FirstOrDefault();
 
                 if (firstMatching is not null)
+                {
                     placedTiles[(x, y)] = firstMatching;
+                    x++;
+                }
                 else
+                {
+                    x = 0;
                     y++;
-
-                x++;
+                }
             }
-            
-            return 1;
+
+            return placedTiles;
         }
         
         public record Tile(int TileId, char[][] Pixels)
         {
-            private const int Size = 10;
+            public static int Size = 10;
 
             public int TopId { get; } = GetId(Pixels, z => (z, 0));
             public int BottomId { get; } = GetId(Pixels, z => (z, Size - 1));

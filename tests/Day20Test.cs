@@ -12,6 +12,9 @@ namespace tests
 
         [Fact]
         void Part1() => GetInstance().Part1().Should().Be(20899048083289);
+        
+        [Fact]
+        void Part2() => GetInstance().Part2().Should().Be(273);
 
         [Fact]
         void Tile_Parse_ToString() => Day20.Tile.Parse(_tile2311).Format().Should().Be(_tile2311);

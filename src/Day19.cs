@@ -70,25 +70,11 @@ namespace aoc_runner
         record LinkRule(int RuleId, int[] LinkedRuleNumbers) : Rule(RuleId)
         {
             public Rule[] LinkedRules { get; private set; }
-            
-            public override Match[] Matches(string input)
-            {
-                var remaining = new List<string> {input};
-                
-                foreach (var rule in LinkedRules)
-                {
-                    var oldRemaining = remaining;
-                    remaining = new();
-                    foreach (var r in oldRemaining)
-                    {
-                        remaining.AddRange(rule.Matches(r).Where(x => x.IsMatch).Select(x => x.Remaining));
-                    }
-                }
 
-                return remaining.Any()
-                    ? remaining.Select(x => new Match(true, x)).ToArray()
-                    : new[] {new Match(false, input)};
-            }
+            public override Match[] Matches(string input) =>
+                LinkedRules.Aggregate(new[] {new Match(input)},
+                                      (acc, rule) => acc.SelectMany(m => rule.Matches(m.Remaining))
+                                                        .ToArray());
 
             public override void Resolve(Dictionary<int, Rule> allRules) =>
                 LinkedRules = LinkedRuleNumbers.Select(x => allRules[x]).ToArray();
@@ -99,7 +85,6 @@ namespace aoc_runner
             public override Match[] Matches(string input) => (
                 from rule in Rules
                 from match in rule.Matches(input)
-                where match.IsMatch
                 select match
             ).ToArray();
 
@@ -112,17 +97,15 @@ namespace aoc_runner
 
         record CharRule(int RuleId, char Char) : Rule(RuleId)
         {
-            public override Match[] Matches(string input) => new[]
-            {
+            public override Match[] Matches(string input) =>
                 input.FirstOrDefault() == Char
-                    ? new Match(true, input.Substring(1))
-                    : new Match(false, input)
-            };
+                    ? new[] {new Match(input.Substring(1))}
+                    : Array.Empty<Match>();
         }
 
-        public record Match (bool IsMatch, string Remaining)
+        public record Match (string Remaining)
         {
-            public bool IsFullMatch => IsMatch && string.IsNullOrEmpty(Remaining);
+            public bool IsFullMatch => string.IsNullOrEmpty(Remaining);
         }
     }
 }

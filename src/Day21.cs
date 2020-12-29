@@ -28,14 +28,14 @@ namespace aoc_runner
         
         private (int part1, string part2) Solve()
         {
-            var ingredientsByAllergens = (
+            var allergensPossibleIngredientsLookup = (
                 from food in Foods
                 from allergen in food.Allergens
                 select (allergen, food.Ingredients)
             ).ToLookup(x => x.allergen, x => x.Ingredients);
 
-            var possibleIngredientsByAllergens =
-                ingredientsByAllergens.ToDictionary(
+            var ingredientsByAllergens =
+                allergensPossibleIngredientsLookup.ToDictionary(
                     x => x.Key,
                     x => x.Aggregate(x.SelectMany(y => y),
                                      (acc, next) => acc.Intersect(next)).ToArray());
@@ -43,21 +43,21 @@ namespace aoc_runner
             KeyValuePair<string,string[]>[] toResolve;
             do
             {
-                toResolve = possibleIngredientsByAllergens.Where(x => x.Value.Length > 1).ToArray();
-                var resolved = possibleIngredientsByAllergens.Values.Where(x => x.Length == 1).Select(x => x.Single()).ToArray();
+                toResolve = ingredientsByAllergens.Where(x => x.Value.Length > 1).ToArray();
+                var resolved = ingredientsByAllergens.Values.Where(x => x.Length == 1).Select(x => x.Single()).ToArray();
 
-                foreach (var i in toResolve)
+                foreach (var (key, value) in toResolve)
                 {
-                    possibleIngredientsByAllergens[i.Key] = i.Value.Except(resolved).ToArray();
+                    ingredientsByAllergens[key] = value.Except(resolved).ToArray();
                 }
                 
             } while (toResolve.Any());
             
-            var part2 = string.Join(",", possibleIngredientsByAllergens.OrderBy(x=>x.Key).Select(x => x.Value.Single()));
+            var part2 = string.Join(",", ingredientsByAllergens.OrderBy(x=>x.Key).Select(x => x.Value.Single()));
 
             
             var allIngredients = Foods.SelectMany(x => x.Ingredients);
-            var allAllergenicIngredients = possibleIngredientsByAllergens.Values.SelectMany(x => x);
+            var allAllergenicIngredients = ingredientsByAllergens.Values.SelectMany(x => x);
             var allNonAllergenicIngredients = allIngredients.Where(x => !allAllergenicIngredients.Contains(x));
             var part1 = allNonAllergenicIngredients.Count();
 

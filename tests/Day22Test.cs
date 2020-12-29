@@ -22,5 +22,8 @@ Player 2:
 
         [Fact]
         void Part1() => new Day22().Part1(_example).Should().Be(306);
+        
+        [Fact]
+        void Part2() => new Day22().Part2(_example).Should().Be(291);
     }
 }

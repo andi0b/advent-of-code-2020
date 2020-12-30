@@ -45,9 +45,10 @@ namespace aoc_runner
 
             public void Move(int times)
             {
+                var next4 = new int[4];
                 for (var i = 0; i < times; i++)
                 {
-                    var next4 = RightOf(_currentCup, 4).ToArray();
+                    RightOf(_currentCup, 4, next4);
 
                     // take out 3 cups (they are still linked together)
                     this[_currentCup] = next4[3];
@@ -62,7 +63,7 @@ namespace aoc_runner
                     this[insertAfter] = next4[0];
                     
                     // set new current cup to right of current cup 
-                    _currentCup = RightOf(_currentCup, 1).First();
+                    _currentCup = this[_currentCup];
                 }
             }
             
@@ -71,16 +72,22 @@ namespace aoc_runner
                 get => _cups[MapIndex(cupId)];
                 set => _cups[MapIndex(cupId)] = value;
             }
-            
+
             private int MapIndex(int cupId) => (_cups.Length + cupId - 1) % _cups.Length;
 
-            public IEnumerable<int> RightOf(int cupId, int count)
+            public int[] RightOf(int cupId, int count)
             {
-                var next = this[cupId];
-                for (int i = 0; i < count; i++)
+                var returnArray = new int[count];
+                RightOf(cupId, count, returnArray);
+                return returnArray;
+            }
+            
+            public void RightOf(int cupId, int count, in int[] buffer)
+            {
+                buffer[0] = this[cupId];
+                for (var i = 1; i < count; i++)
                 {
-                    yield return next;
-                    next = this[next];
+                    buffer[i] = this[buffer[i - 1]];
                 }
             }
         }

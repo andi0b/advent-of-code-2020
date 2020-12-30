@@ -1,54 +1,88 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace aoc_runner
 {
-    public class Day23
+    public record Day23(string Input)
     {
-        public string Part1(string input) =>
-            Enumerable.Range(0, 100)
-                      .Aggregate(Circle.Parse(input),
-                                 (agg, _) => agg.Next(),
-                                 agg => agg.Solution);
+        public string Part1() => string.Concat(Solve(9, 100).RightOf(1, 8));
+        public long Part2() => Solve(1_000_000, 10_000_000).RightOf(1, 2).Aggregate(1L, (acc, next) => acc * next);
 
-        public record Circle(int[] Cups, int CurrentCup)
+        private CupCircle Solve(int cupCount, int moveCount)
         {
-            (int[] taken, int[] remaining) TakeElements(int cupId, int count)
-            {
-                var cupIndex = Array.FindIndex(Cups, x => x == cupId);
-                var indicesToTake = Enumerable.Range(1, count).Select(x => (cupIndex + x) % 9).ToArray();
+            var circle = new CupCircle(Input, cupCount);
+            circle.Move(moveCount);
+            return circle;
+        }
 
-                return (indicesToTake.Select(i => Cups[i]).ToArray(),
-                    Cups.Select((cup, i) => (cup, i)).Where(x => !indicesToTake.Contains(x.i)).Select(x => x.cup).ToArray());
-            }
+        public class CupCircle
+        {
+            private readonly int[] _cups;
 
-            public Circle Next()
-            {
-                var (taken, remaining) = TakeElements(CurrentCup, 3);
-                var destinationIndex = FindDestinationIndex(remaining);
-                var next = remaining[..(destinationIndex + 1)].Concat(taken).Concat(remaining[(destinationIndex + 1)..]).ToArray();
-                var nextCurrentCupIndex = (Array.IndexOf(next, CurrentCup) + 1) % 9;
+            private int _currentCup;
 
-                return new(next, next[nextCurrentCupIndex]);
-            }
-            
-            int FindDestinationIndex(int[] remaining)
+            public CupCircle(string input, int cupCount)
             {
-                for (var i = 1; i <= 9; i++)
+                _cups = Enumerable.Range(2, cupCount).ToArray();
+                var inputNumbers = input.Select(x => int.Parse(x.ToString())).ToArray();
+                for (var cupIndex = 0; cupIndex < inputNumbers.Length-1; cupIndex++)
                 {
-                    var destination = 1 + (9 + CurrentCup - 1 - i) % 9;
-                    var destinationIndex = Array.IndexOf(remaining, destination);
-                    if (destinationIndex != -1) 
-                        return destinationIndex;
+                    var inputCupId = inputNumbers[cupIndex];
+                    var cupToRightId = inputNumbers[cupIndex + 1];
+                    this[inputCupId] = cupToRightId;
                 }
-                throw new Exception();
+
+                if (inputNumbers.Length < cupCount)
+                {
+                    this[inputNumbers.Last()] = inputNumbers.Length + 1;
+                    this[_cups.Length]        = inputNumbers.First();
+                }
+                else
+                    this[inputNumbers.Last()] = inputNumbers.First();
+
+                _currentCup = inputNumbers.First();
             }
 
-            public string Solution => string.Concat(TakeElements(1, 8).taken.Select(x => x.ToString()));
-            
-            public static Circle Parse(string input) => new(input.Select(x => x - '0').ToArray(), input.First() - '0');
+            public void Move(int times)
+            {
+                for (var i = 0; i < times; i++)
+                {
+                    var next4 = RightOf(_currentCup, 4).ToArray();
 
-            public override string ToString() => string.Concat(Cups.Select(x => x == CurrentCup ? $" ({x}) " : $"  {x}  "));
+                    // take out 3 cups (they are still linked together)
+                    this[_currentCup] = next4[3];
+                    
+                    // find cup to insert after
+                    var insertAfter = _currentCup;
+                    do insertAfter = 1 + (_cups.Length - 1 + insertAfter - 1) % _cups.Length;
+                    while (insertAfter == next4[0] || insertAfter == next4[1] || insertAfter == next4[2]);
+
+                    // insert the 3 cups
+                    this[next4[2]]    = this[insertAfter];
+                    this[insertAfter] = next4[0];
+                    
+                    // set new current cup to right of current cup 
+                    _currentCup = RightOf(_currentCup, 1).First();
+                }
+            }
+            
+            public int this[int cupId]
+            {
+                get => _cups[MapIndex(cupId)];
+                set => _cups[MapIndex(cupId)] = value;
+            }
+            
+            private int MapIndex(int cupId) => (_cups.Length + cupId - 1) % _cups.Length;
+
+            public IEnumerable<int> RightOf(int cupId, int count)
+            {
+                var next = this[cupId];
+                for (int i = 0; i < count; i++)
+                {
+                    yield return next;
+                    next = this[next];
+                }
+            }
         }
     }
 }

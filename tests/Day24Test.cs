@@ -7,7 +7,7 @@ namespace tests
     public class Day24Test
     {
         [Fact]
-        void Move1() => Day24.ParseMoves("nwwswee").Should().BeEquivalentTo(new Day24.Tile(0, 0));
+        void Move1() => Day24.ParseMoves("nwwswee").Should().BeEquivalentTo((0, 0));
 
         [Fact]
         void Part1() => new Day24().Part1(_sample).Should().Be(10);

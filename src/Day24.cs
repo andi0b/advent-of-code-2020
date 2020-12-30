@@ -22,12 +22,12 @@ namespace aoc_runner
             
             for (var i = 0; i < 100; i++)
             {
-                var interestingTiles = blackTiles.SelectMany(x => x.AllAdjacent().Prepend(x)).Distinct();
+                var interestingTiles = blackTiles.SelectMany(x => AllAdjacent(x).Prepend(x)).Distinct();
 
                 blackTiles = (
                     from tile in interestingTiles
                     let isBlack = blackTiles.Contains(tile)
-                    let adjacentBlackCount = tile.AllAdjacent().Count(t => blackTiles.Contains(t))
+                    let adjacentBlackCount = AllAdjacent(tile).Count(t => blackTiles.Contains(t))
                     let isBlackNext = (isBlack, adjacentBlackCount) switch
                     {
                         (true, 0 or >2) => false,
@@ -42,7 +42,7 @@ namespace aoc_runner
             return blackTiles.Count;
         }
 
-        public static Tile ParseMoves(string input) => (
+        public static (int x, int y) ParseMoves(string input) => (
             from pair in input.Prepend(' ').Zip(input)
             select pair switch
             {
@@ -54,13 +54,10 @@ namespace aoc_runner
                 (_, 'w')   => (-1, +0),
                 _          => (+0, +0)
             }
-        ).Aggregate((0, 0), (acc, next) => (acc.Item1 + next.Item1, acc.Item2 + next.Item2), acc => new Tile(acc.Item1, acc.Item2));
+        ).Aggregate((0, 0), (acc, next) => (acc.Item1 + next.Item1, acc.Item2 + next.Item2));
 
-        public record Tile(int X, int Y)
-        {
-            public IEnumerable<Tile> AllAdjacent() =>
-                new (int x, int y)[] {(+1, -1), (+0, -1), (+0, +1), (-1, +1), (+1, +0), (-1, +0)}
-                   .Select(direction => new Tile(X + direction.x, Y + direction.y));
-        }
+        public IEnumerable<(int x, int y)> AllAdjacent((int x, int y) tile) =>
+            new (int x, int y)[] {(+1, -1), (+0, -1), (+0, +1), (-1, +1), (+1, +0), (-1, +0)}
+               .Select(direction => (tile.x + direction.x, tile.y + direction.y));
     }
 }

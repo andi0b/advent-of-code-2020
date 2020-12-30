@@ -10,12 +10,12 @@ namespace tests
         void Move1() => Day24.ParseMoves("nwwswee").Should().BeEquivalentTo((0, 0));
 
         [Fact]
-        void Part1() => new Day24().Part1(_sample).Should().Be(10);
+        void Part1() => new Day24(_sample).Part1().Should().Be(10);
         
         [Fact]
-        void Part2() => new Day24().Part2(_sample).Should().Be(2208);
+        void Part2() => new Day24(_sample).Part2().Should().Be(2208);
 
-        private string[] _sample = new[]
+        private string[] _sample = 
         {
             "sesenwnenenewseeswwswswwnenewsewsw",
             "neeenesenwnwwswnenewnwwsewnenwseswesw",

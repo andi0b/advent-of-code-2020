@@ -3,44 +3,35 @@ using System.Linq;
 
 namespace aoc_runner
 {
-    public class Day24
+    public record Day24((int x, int y)[] Moves)
     {
-        public int Part1(string[] input) => (
-            from move in input.Select(ParseMoves)
-            group move by move
-        ).Count(x => x.Count() % 2 != 0);
+        public Day24(string[] input) : this(input.Select(ParseMoves).ToArray()) {}
 
-        public int Part2(string[] input)
-        {
-            var blackTiles = (
-                from move in input.Select(ParseMoves)
-                group move by move
-                into flips
+        public int Part1() => Moves.GroupBy(m => m)
+                                   .Count(m => m.Count() % 2 != 0);
+
+        public int Part2() => Enumerable.Repeat(1, 100).Aggregate(
+            (
+                from flips in Moves.GroupBy(m => m)
                 where flips.Count() % 2 != 0
-                select flips.First()
-            ).ToHashSet();
-            
-            for (var i = 0; i < 100; i++)
-            {
-                var interestingTiles = blackTiles.SelectMany(x => AllAdjacent(x).Prepend(x)).Distinct();
+                select flips.Key
+            ).ToHashSet(),
 
-                blackTiles = (
-                    from tile in interestingTiles
-                    let isBlack = blackTiles.Contains(tile)
-                    let adjacentBlackCount = AllAdjacent(tile).Count(t => blackTiles.Contains(t))
-                    let isBlackNext = (isBlack, adjacentBlackCount) switch
-                    {
-                        (true, 0 or >2) => false,
-                        (false, 2)      => true,
-                        _               => isBlack,
-                    }
-                    where isBlackNext
-                    select tile
-                ).ToHashSet();
-            }
+            (blackTiles, _) => (
+                from tile in blackTiles.SelectMany(x => AllAdjacent(x).Append(x)).Distinct()
+                let isBlack = blackTiles.Contains(tile)
+                let adjacentBlackCount = AllAdjacent(tile).Count(blackTiles.Contains)
+                where (isBlack, adjacentBlackCount) switch
+                {
+                    (true, 0 or >2) => false,
+                    (false, 2)      => true,
+                    _               => isBlack,
+                }
+                select tile
+            ).ToHashSet(),
 
-            return blackTiles.Count;
-        }
+            blackTiles => blackTiles.Count
+        );
 
         public static (int x, int y) ParseMoves(string input) => (
             from pair in input.Prepend(' ').Zip(input)
@@ -54,7 +45,7 @@ namespace aoc_runner
                 (_, 'w')   => (-1, +0),
                 _          => (+0, +0)
             }
-        ).Aggregate((0, 0), (acc, next) => (acc.Item1 + next.Item1, acc.Item2 + next.Item2));
+        ).Cast<(int x, int y)>().Aggregate((x: 0, y: 0), (acc, next) => (acc.x + next.x, acc.y + next.y));
 
         public IEnumerable<(int x, int y)> AllAdjacent((int x, int y) tile) =>
             new (int x, int y)[] {(+1, -1), (+0, -1), (+0, +1), (-1, +1), (+1, +0), (-1, +0)}

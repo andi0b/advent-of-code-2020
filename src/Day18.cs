@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using static MoreLinq.Extensions.ScanExtension;
-using static MoreLinq.Extensions.PreScanExtension;
 using static MoreLinq.Extensions.RepeatExtension;
 using static MoreLinq.Extensions.TakeUntilExtension;
 
@@ -68,7 +66,7 @@ namespace aoc_runner
                         ).ToArray();
 
                         return expr.Any()
-                            ? (Parse(new string(expr.Skip(1).ToArray())), str[(expr.Length + 1) ..])
+                            ? (Parse(new string(expr[1..])), str[(expr.Length + 1) ..])
                             : (null, str);
                     },
 

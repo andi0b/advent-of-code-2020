@@ -1,4 +1,5 @@
-﻿using aoc_runner;
+﻿using System;
+using aoc_runner;
 using FluentAssertions;
 using Xunit;
 
@@ -18,6 +19,6 @@ namespace tests
          InlineData("67,7,x,59,61", 1261476),
          InlineData("1789,37,47,1889", 1202161486)]
         public void Part2(string input, long expected) =>
-            new Day13("", input).Part2().Should().Be(expected);
+            new Day13("0", input).Part2("1000509\n" + input).Should().Be(expected);
     }
 }

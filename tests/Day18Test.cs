@@ -8,6 +8,7 @@ namespace tests
     {
         [Theory,
          InlineData("11 + 22 * 10", 330),
+         InlineData("(11) + (22)", 33),
          InlineData("1 + 2 * 3 + 4 * 5 + 6", 71),
          InlineData("1 + (2 * 3) + (4 * (5 + 6))", 51),
          InlineData("2 * 3 + (4 * 5)", 26),

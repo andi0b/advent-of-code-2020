@@ -18,9 +18,9 @@ namespace tests
             Day25.Transform(subjectNumber, loopSize).Should().Be(expected);
 
         [Theory,
-         InlineData(5764801, 7, 8),
-         InlineData(17807724, 7, 11)]
-        public void BruteForce(int num, int subjectNumber, int loopSize) =>
+         InlineData(5764801, 8),
+         InlineData(17807724, 11)]
+        public void BruteForce(int num, int loopSize) =>
             Day25.BruteForceLoopSize(7, num).Should().Be(loopSize);
     }
 }
